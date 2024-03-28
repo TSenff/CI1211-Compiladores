@@ -9,8 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "compilador.h"
+#include "simbol_table.h"
 
 int num_vars;
+char str_comando[20];
+int amem_cont = 0;
 
 %}
 
@@ -58,17 +61,30 @@ declara_vars: declara_vars declara_var
 declara_var : { }
               lista_id_var DOIS_PONTOS
               tipo
-              { /* AMEM */
+              { 
+               /* AMEM */
+               sprintf(str_comando,"AMEM %i",amem_cont);
+               amem_cont = 0;
+               geraCodigo (NULL, str_comando);
+
               }
               PONTO_E_VIRGULA
 ;
 
-tipo        : IDENT
+tipo        : IDENT {add_tipo_vs(tabela_simbolos, token); }
 ;
 
 lista_id_var: lista_id_var VIRGULA IDENT
-              { /* insere �ltima vars na tabela de s�mbolos */ }
-            | IDENT { /* insere vars na tabela de s�mbolos */}
+              {
+               /* insere ultima vars na tabela de simbolos */
+               push(&tabela_simbolos,cria_registro_vs(token,desconhecido,0,0)); 
+               amem_cont++;
+               }
+            | IDENT  {
+                     /* insere vars na tabela de s�mbolos */
+                     push(&tabela_simbolos,cria_registro_vs(token,desconhecido,0,0));  
+                     amem_cont++;
+                     }
 ;
 
 lista_idents: lista_idents VIRGULA IDENT
@@ -88,6 +104,9 @@ int main (int argc, char** argv) {
    FILE* fp;
    extern FILE* yyin;
 
+
+
+
    if (argc<2 || argc>2) {
          printf("usage compilador <arq>a %d\n", argc);
          return(-1);
@@ -103,7 +122,6 @@ int main (int argc, char** argv) {
 /* -------------------------------------------------------------------
  *  Inicia a Tabela de S�mbolos
  * ------------------------------------------------------------------- */
-
    yyin=fp;
    yyparse();
 

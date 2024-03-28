@@ -10,6 +10,8 @@
  * Tipos, protótipos e variáveis globais do compilador (via extern)
  *
  * ------------------------------------------------------------------- */
+#ifndef COMPILADOR_H_
+#define COMPILADOR_H_
 
 #define TAM_TOKEN 16
 
@@ -22,17 +24,19 @@ typedef enum simbolos {
   simb_if, simb_then, simb_else, simb_while, simb_do, simb_and, simb_or, simb_div, simb_not
 } simbolos;
 
-
+#include "simbol_table.h"
 
 /* -------------------------------------------------------------------
  * variáveis globais
  * ------------------------------------------------------------------- */
 
+extern stack_gen *tabela_simbolos;
 extern simbolos simbolo, relacao;
 extern char token[TAM_TOKEN];
 extern int nivel_lexico;
 extern int desloc;
 extern int nl;
+
 
 
 /* -------------------------------------------------------------------
@@ -42,3 +46,5 @@ extern int nl;
 void geraCodigo (char*, char*);
 int yylex();
 void yyerror(const char *s);
+
+#endif
