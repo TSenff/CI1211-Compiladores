@@ -47,14 +47,10 @@ bloco       :
 
 
 
-parte_declara_vars:  var
+parte_declara_vars: VAR declara_vars { deslocamento = 0;}
+                  |
 ;
 
-
-var         :  
-            VAR declara_vars { deslocamento = 0;}
-            |
-;
 
 declara_vars: declara_vars declara_var
             | declara_var
