@@ -203,10 +203,39 @@ div { simbolo = simb_div;
           return DIV;
 }
 
+\/ { simbolo = simb_div;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME("div  ");
+          return DIV;
+  }
+
+\* { simbolo = simb_asterisco;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME("asterisco  ");
+          return ASTERISCO;
+  }
+
+\- { simbolo = simb_menos;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME("menos  ");
+          return MENOS;
+  }
+
+\+ { simbolo = simb_mais;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME("mais  ");
+          return MAIS;
+  }
+
 not { simbolo = simb_not;
           strncpy (token, yytext, TAM_TOKEN);
           IMPRIME("not  ");
           return NOT;
+}
+{numero} { simbolo = simb_numero;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME("numero  ");
+          return NUMERO;
 }
 
 {ident} { simbolo = simb_identificador;

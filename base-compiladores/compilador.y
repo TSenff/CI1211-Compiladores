@@ -12,6 +12,7 @@
 #include "simbol_table.h"
 
 extern int num_vars;
+registro_ts *l_side;
 
 %}
 
@@ -19,7 +20,8 @@ extern int num_vars;
 %token VIRGULA PONTO_E_VIRGULA DOIS_PONTOS PONTO
 %token T_BEGIN T_END VAR IDENT ATRIBUICAO
 %token LABEL TYPE ARRAY OF PROCEDURE FUNCTION GOTO
-%token IF THEN ELSE WHILE DO AND OR DIV NOT
+%token IF THEN ELSE WHILE DO AND OR NOT DIV MAIS MENOS ASTERISCO
+%token NUMERO
 
 %%
 
@@ -41,8 +43,8 @@ bloco       :
               {
               }
 
-              comando_composto
-              ;
+              comando_composto 
+;
 
 
 
@@ -88,11 +90,31 @@ lista_idents: lista_idents VIRGULA IDENT
 ;
 
 
-comando_composto: T_BEGIN comandos T_END
+comando_composto: T_BEGIN comandos T_END 
 
-comandos:
+comandos: comandos comando PONTO_E_VIRGULA
+         | comando PONTO_E_VIRGULA 
+
+comando: atribuicao 
+
+
+atribuicao: IDENT {l_side = busca(tabela_simbolos, token);} ATRIBUICAO expr {
+         gera_codigo_int_int(NULL,"ARMZ",l_side->data.vs.nivel_lexico,l_side->data.vs.deslocamento);
+      } 
+
+expr       : expr MAIS termo { gera_codigo(NULL,"SOMA"); } |
+             expr MENOS termo { gera_codigo(NULL,"SUBT"); } | 
+             termo 
 ;
 
+termo      : termo ASTERISCO fator  {gera_codigo(NULL,"MULT");}| 
+             termo DIV fator        {gera_codigo(NULL,"DIVI"); }|
+             fator 
+;
+
+fator      : NUMERO {gera_codigo_int(NULL,"CRCT",atoi(token)); }
+
+;
 
 %%
 

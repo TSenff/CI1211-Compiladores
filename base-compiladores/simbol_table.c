@@ -20,6 +20,9 @@ enum Var_type convert_token_var_type(char *token){
     if (!strcmp(token,"integer"))
         return inteiro;
 
+    if (!strcmp(token,"boolean"))
+        return boolean;
+    
     return desconhecido;
 }
 
@@ -60,6 +63,16 @@ void print_ts(stack_gen *ts){
         t = t->next;
     }
     
+}
+
+
+registro_ts *busca(stack_gen *ts, char *ident){
+    stack_gen *t = ts;
+
+    while (t != NULL && strcmp(ident, ((registro_ts*)t->data)->identificador ))
+        t = t->next;
+    
+    return  (registro_ts*)t->data;
 }
 
 

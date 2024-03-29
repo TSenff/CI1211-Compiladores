@@ -26,7 +26,6 @@ typedef struct procedimentos{
         int tipo;
         int nivel_lexico;
         int rotulo;
-        int aaaaaaahhhhhhhhh;
 }procedimentos;
 
 typedef struct registro_tabela_simbolos{
@@ -46,6 +45,9 @@ int ts_conta_vs(stack_gen *ts);
 registro_ts *cria_registro_vs(char* ident,enum Var_type tipo, int nivel_lexico, int deslocamento);
 
 void print_ts(stack_gen *ts);
+
+registro_ts *busca(stack_gen *ts, char *ident);
+
 
 
 
