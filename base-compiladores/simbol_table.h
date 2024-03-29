@@ -3,12 +3,11 @@
 
 #include "generic_stack.h"
 #include "compilador.h"
+#include <stdio.h>
 #include <string.h>
 
 enum Type {vs, pf, pr};
 enum Var_type {desconhecido, inteiro };
-
-
 
 typedef struct variavel_simples{
         enum Var_type tipo;
@@ -46,6 +45,7 @@ int ts_conta_vs(stack_gen *ts);
 
 registro_ts *cria_registro_vs(char* ident,enum Var_type tipo, int nivel_lexico, int deslocamento);
 
+void print_ts(stack_gen *ts);
 
 
 

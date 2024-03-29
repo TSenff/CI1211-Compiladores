@@ -29,4 +29,11 @@ simbol_table.o : simbol_table.c simbol_table.h generic_stack.h
 
 
 clean :
-	rm -f compilador.tab.* lex.yy.c compilador.o compilador *.o
+	rm -f *.o
+
+purge : clean 
+	rm -f compilador.tab.* lex.yy.c compilador.output compilador
+
+run : clean
+	./compilador teste1.pas
+

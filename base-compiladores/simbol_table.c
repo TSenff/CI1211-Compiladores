@@ -1,7 +1,5 @@
 #include "simbol_table.h"
 
-stack_gen *tabela_simbolos;
-
 registro_ts *cria_registro_vs(char* ident,enum Var_type tipo, int nivel_lexico, int deslocamento){
     registro_ts *reg = malloc(sizeof(registro_ts));
     if (reg == NULL)
@@ -19,7 +17,7 @@ registro_ts *cria_registro_vs(char* ident,enum Var_type tipo, int nivel_lexico, 
  * Converte um token em um enum Var_type equivalente, caso desconhecido devolve desconhecido
 */
 enum Var_type convert_token_var_type(char *token){
-    if (strcmp(token,"integer"))
+    if (!strcmp(token,"integer"))
         return inteiro;
 
     return desconhecido;
@@ -52,5 +50,17 @@ void add_tipo_vs(stack_gen *ts, char *token){
         t = t->next;
     }
 }
+
+void print_ts(stack_gen *ts){
+    stack_gen *t = ts;
+
+    while (t != NULL){
+        printf("ID :: %s",((registro_ts*)t->data)->identificador);
+        printf("  | TYPE :: %s \n", ((registro_ts*)t->data)->data.vs.tipo ? "INTEGER": "DESCONHECIDO");
+        t = t->next;
+    }
+    
+}
+
 
 

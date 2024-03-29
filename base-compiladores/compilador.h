@@ -1,19 +1,9 @@
-/* -------------------------------------------------------------------
- *            Arquivo: compilador.h
- * -------------------------------------------------------------------
- *              Autor: Bruno Muller Junior
- *               Data: 08/2007
- *      Atualizado em: [09/08/2020, 19h:01m]
- *
- * -------------------------------------------------------------------
- *
- * Tipos, protótipos e variáveis globais do compilador (via extern)
- *
- * ------------------------------------------------------------------- */
 #ifndef COMPILADOR_H_
 #define COMPILADOR_H_
 
 #define TAM_TOKEN 16
+
+#include "simbol_table.h"
 
 typedef enum simbolos {
   simb_program, simb_var, simb_begin, simb_end,
@@ -24,27 +14,21 @@ typedef enum simbolos {
   simb_if, simb_then, simb_else, simb_while, simb_do, simb_and, simb_or, simb_div, simb_not
 } simbolos;
 
-#include "simbol_table.h"
-
-/* -------------------------------------------------------------------
- * variáveis globais
- * ------------------------------------------------------------------- */
 
 extern stack_gen *tabela_simbolos;
 extern simbolos simbolo, relacao;
 extern char token[TAM_TOKEN];
 extern int nivel_lexico;
-extern int desloc;
+extern int deslocamento;
+extern int num_vars;
 extern int nl;
 
+void gera_codigo (char* rot, char* comando);
+void gera_codigo_int (char* rot, char* comando, int a);
+void gera_codigo_int_int (char* rot, char* comando, int a, int b);
 
-
-/* -------------------------------------------------------------------
- * prototipos globais
- * ------------------------------------------------------------------- */
-
-void geraCodigo (char*, char*);
 int yylex();
+
 void yyerror(const char *s);
 
 #endif

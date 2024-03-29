@@ -11,9 +11,7 @@
 #include "compilador.h"
 #include "simbol_table.h"
 
-int num_vars;
-char str_comando[20];
-int amem_cont = 0;
+extern int num_vars;
 
 %}
 
@@ -26,12 +24,15 @@ int amem_cont = 0;
 %%
 
 programa    :{
-             geraCodigo (NULL, "INPP");
+               gera_codigo (NULL, "INPP");
              }
              PROGRAM IDENT
              ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA
-             bloco PONTO {
-             geraCodigo (NULL, "PARA");
+             bloco PONTO 
+             {
+               // Da onde tirar o valor de DMEM???
+               //gera_codigo_int (NULL, "DMEM", );
+               gera_codigo (NULL, "PARA");
              }
 ;
 
@@ -50,7 +51,8 @@ parte_declara_vars:  var
 ;
 
 
-var         : { } VAR declara_vars
+var         :  
+            VAR declara_vars { deslocamento = 0;}
             |
 ;
 
@@ -62,29 +64,27 @@ declara_var : { }
               lista_id_var DOIS_PONTOS
               tipo
               { 
-               /* AMEM */
-               sprintf(str_comando,"AMEM %i",amem_cont);
-               amem_cont = 0;
-               geraCodigo (NULL, str_comando);
-
+               gera_codigo_int (NULL, "AMEM", num_vars);
+               num_vars = 0;
               }
               PONTO_E_VIRGULA
 ;
 
-tipo        : IDENT {add_tipo_vs(tabela_simbolos, token); }
+tipo        : IDENT {add_tipo_vs(tabela_simbolos, token);   }
 ;
 
-lista_id_var: lista_id_var VIRGULA IDENT
-              {
-               /* insere ultima vars na tabela de simbolos */
-               push(&tabela_simbolos,cria_registro_vs(token,desconhecido,0,0)); 
-               amem_cont++;
-               }
-            | IDENT  {
-                     /* insere vars na tabela de s�mbolos */
-                     push(&tabela_simbolos,cria_registro_vs(token,desconhecido,0,0));  
-                     amem_cont++;
-                     }
+lista_id_var: lista_id_var VIRGULA IDENT {
+                                             /* insere ultima vars na tabela de simbolos */
+                                             push(&tabela_simbolos,cria_registro_vs(token,desconhecido,nivel_lexico,deslocamento)); 
+                                             num_vars++; 
+                                             deslocamento++;
+                                          }
+               | IDENT  {
+                           /* insere vars na tabela de s�mbolos */
+                           push(&tabela_simbolos,cria_registro_vs(token,desconhecido,nivel_lexico,deslocamento));  
+                           num_vars++;
+                           deslocamento++;
+                        }
 ;
 
 lista_idents: lista_idents VIRGULA IDENT
