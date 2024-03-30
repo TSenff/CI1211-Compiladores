@@ -12,7 +12,7 @@
 #include "simbol_table.h"
 
 extern int num_vars;
-registro_ts *l_side;
+registro_ts *l_side, *temp;
 
 %}
 
@@ -92,8 +92,9 @@ lista_idents: lista_idents VIRGULA IDENT
 
 comando_composto: T_BEGIN comandos T_END 
 
-comandos: comandos comando PONTO_E_VIRGULA
-         | comando PONTO_E_VIRGULA 
+comandos:   comandos comando PONTO_E_VIRGULA
+            |comando PONTO_E_VIRGULA 
+            |
 
 comando: atribuicao 
 
@@ -112,7 +113,12 @@ termo      : termo ASTERISCO fator  {gera_codigo(NULL,"MULT");}|
              fator 
 ;
 
-fator      : NUMERO {gera_codigo_int(NULL,"CRCT",atoi(token)); }
+fator      : NUMERO {gera_codigo_int(NULL,"CRCT",atoi(token)); } |
+             IDENT {
+               // Asume que é uma variavel Simples
+               temp = busca(tabela_simbolos, token);
+               gera_codigo_int_int(NULL,"CRVL",temp->data.vs.nivel_lexico,temp->data.vs.deslocamento);
+            } 
 
 ;
 

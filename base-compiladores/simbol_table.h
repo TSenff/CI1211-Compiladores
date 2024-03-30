@@ -7,7 +7,7 @@
 #include <string.h>
 
 enum Type {vs, pf, pr};
-enum Var_type {desconhecido, inteiro };
+enum Var_type {desconhecido, inteiro, boolean};
 
 typedef struct variavel_simples{
         enum Var_type tipo;
