@@ -27,7 +27,7 @@ extern int nl;
 void gera_codigo (char* rot, char* comando);
 void gera_codigo_int (char* rot, char* comando, int a);
 void gera_codigo_int_int (char* rot, char* comando, int a, int b);
-
+int imprimeErro ( char* erro );
 int yylex();
 
 void yyerror(const char *s);

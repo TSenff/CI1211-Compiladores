@@ -108,15 +108,25 @@ expr       : expr MAIS termo { gera_codigo(NULL,"SOMA"); } |
              termo 
 ;
 
-termo      : termo ASTERISCO fator  {gera_codigo(NULL,"MULT");}| 
-             termo DIV fator        {gera_codigo(NULL,"DIVI"); }|
-             fator 
+termo      : termo ASTERISCO prioridade  {gera_codigo(NULL,"MULT");}| 
+             termo DIV prioridade        {gera_codigo(NULL,"DIVI"); }|
+             prioridade 
+;
+
+prioridade  : ABRE_PARENTESES expr FECHA_PARENTESES ASTERISCO prioridade {gera_codigo(NULL,"MULT");}|
+              ABRE_PARENTESES expr FECHA_PARENTESES MAIS prioridade      {gera_codigo(NULL,"SOMA");}| 
+              ABRE_PARENTESES expr FECHA_PARENTESES MENOS prioridade     {gera_codigo(NULL,"MENOS");}| 
+              ABRE_PARENTESES expr FECHA_PARENTESES DIV prioridade       {gera_codigo(NULL,"DIV");}| 
+              ABRE_PARENTESES expr FECHA_PARENTESES {}| 
+              fator 
 ;
 
 fator      : NUMERO {gera_codigo_int(NULL,"CRCT",atoi(token)); } |
              IDENT {
                // Asume que é uma variavel Simples
                temp = busca(tabela_simbolos, token);
+               if(temp->categoria != vs)
+                  imprimeErro("Tipo invalido em atribuição");
                gera_codigo_int_int(NULL,"CRVL",temp->data.vs.nivel_lexico,temp->data.vs.deslocamento);
             } 
 
