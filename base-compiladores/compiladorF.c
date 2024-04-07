@@ -31,6 +31,18 @@ void gera_codigo (char* rot, char* comando){
   fflush(fp);
 }
 
+void gera_codigo_str (char* rot, char* comando, char* str){
+  check_fp();
+
+  if ( rot == NULL ) {
+    fprintf(fp, "     %s %s\n", comando, str);
+  } else {
+    fprintf(fp, "%s: %s %s\n", rot, comando, str);
+  }
+  
+  fflush(fp);
+}
+
 void gera_codigo_int (char* rot, char* comando, int a){
   check_fp();
 

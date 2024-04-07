@@ -21,7 +21,7 @@ registro_ts *l_side, *temp;
 %token T_BEGIN T_END VAR IDENT ATRIBUICAO
 %token LABEL TYPE ARRAY OF PROCEDURE FUNCTION GOTO
 %token IF THEN ELSE WHILE DO AND OR NOT DIV MAIS MENOS ASTERISCO
-%token NUMERO
+%token NUMERO IGUAL DIFERENTE MENOR  MENOR_IGUAL  MAIOR_IGUAL  MAIOR 
 
 %%
 
@@ -30,8 +30,7 @@ programa    :{
              }
              PROGRAM IDENT
              ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA
-             bloco PONTO 
-             {
+             bloco {
                // Da onde tirar o valor de DMEM???
                //gera_codigo_int (NULL, "DMEM", );
                gera_codigo (NULL, "PARA");
@@ -45,9 +44,6 @@ bloco       :
 
               comando_composto 
 ;
-
-
-
 
 parte_declara_vars: VAR declara_vars { deslocamento = 0;}
                   |
@@ -89,23 +85,53 @@ lista_idents: lista_idents VIRGULA IDENT
             | IDENT
 ;
 
+comando_composto: T_BEGIN comandos T_END PONTO 
+;
 
-comando_composto: T_BEGIN comandos T_END 
-
-comandos:   comandos comando PONTO_E_VIRGULA
-            |comando PONTO_E_VIRGULA 
+comandos:   comandos comando 
+            |comando   
             |
+;
 
-comando: atribuicao 
+comando:  atribuicao PONTO_E_VIRGULA  |
+         comando_repetitivo
+;
 
+comando_repetitivo:  WHILE {
+                        novos_rotulos();
+                        gera_codigo(rotulo_ini(),"NADA");
+                     } 
+                     condicao
+                     DO {
+                        gera_codigo_str(NULL,"DSVF",rotulo_fim());
+                     }
+                     T_BEGIN comandos T_END  {
+                        gera_codigo_str(NULL,"DSVS",rotulo_ini());
+                        gera_codigo(rotulo_fim(),"NADA");
+                        remove_rotulos();
+                     }
+;
 
-atribuicao: IDENT {l_side = busca(tabela_simbolos, token);} ATRIBUICAO expr {
+atribuicao: IDENT {l_side = busca(tabela_simbolos, token);} ATRIBUICAO expressao {
          gera_codigo_int_int(NULL,"ARMZ",l_side->data.vs.nivel_lexico,l_side->data.vs.deslocamento);
       } 
+;
 
-expr       : expr MAIS termo { gera_codigo(NULL,"SOMA"); } |
-             expr MENOS termo { gera_codigo(NULL,"SUBT"); } | 
-             termo 
+
+expressao: expressao_simples |
+           condicao
+;
+condicao: expressao_simples IGUAL expressao_simples        {gera_codigo(NULL,"CMIG");}|
+          expressao_simples DIFERENTE expressao_simples    {gera_codigo(NULL,"CMDG");}|
+          expressao_simples MENOR expressao_simples        {gera_codigo(NULL,"CMMA");}|
+          expressao_simples MENOR_IGUAL expressao_simples  {gera_codigo(NULL,"CMAG");}|
+          expressao_simples MAIOR expressao_simples        {gera_codigo(NULL,"CMME");}|
+          expressao_simples MAIOR_IGUAL expressao_simples  {gera_codigo(NULL,"CMEG");}
+
+
+expressao_simples: expressao_simples MAIS termo { gera_codigo(NULL,"SOMA"); } |
+                   expressao_simples MENOS termo { gera_codigo(NULL,"SUBT"); } | 
+                   termo 
 ;
 
 termo      : termo ASTERISCO prioridade  {gera_codigo(NULL,"MULT");}| 
@@ -113,11 +139,11 @@ termo      : termo ASTERISCO prioridade  {gera_codigo(NULL,"MULT");}|
              prioridade 
 ;
 
-prioridade  : ABRE_PARENTESES expr FECHA_PARENTESES ASTERISCO prioridade {gera_codigo(NULL,"MULT");}|
-              ABRE_PARENTESES expr FECHA_PARENTESES MAIS prioridade      {gera_codigo(NULL,"SOMA");}| 
-              ABRE_PARENTESES expr FECHA_PARENTESES MENOS prioridade     {gera_codigo(NULL,"MENOS");}| 
-              ABRE_PARENTESES expr FECHA_PARENTESES DIV prioridade       {gera_codigo(NULL,"DIV");}| 
-              ABRE_PARENTESES expr FECHA_PARENTESES {}| 
+prioridade  : ABRE_PARENTESES expressao_simples FECHA_PARENTESES ASTERISCO prioridade {gera_codigo(NULL,"MULT");}|
+              ABRE_PARENTESES expressao_simples FECHA_PARENTESES MAIS prioridade      {gera_codigo(NULL,"SOMA");}| 
+              ABRE_PARENTESES expressao_simples FECHA_PARENTESES MENOS prioridade     {gera_codigo(NULL,"MENOS");}| 
+              ABRE_PARENTESES expressao_simples FECHA_PARENTESES DIV prioridade       {gera_codigo(NULL,"DIV");}| 
+              ABRE_PARENTESES expressao_simples FECHA_PARENTESES {}| 
               fator 
 ;
 
