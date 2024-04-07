@@ -11,8 +11,10 @@
 #include "compilador.h"
 #include "simbol_table.h"
 
+
 extern int num_vars;
 registro_ts *l_side, *temp;
+unsigned int var_cont;
 
 %}
 
@@ -32,7 +34,9 @@ programa    :{
              ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA
              bloco {
                // Da onde tirar o valor de DMEM???
-               //gera_codigo_int (NULL, "DMEM", );
+               var_cont = ts_conta_vs(tabela_simbolos);
+               if(var_cont != 0)
+                  gera_codigo_unsig_int (NULL, "DMEM", var_cont);
                gera_codigo (NULL, "PARA");
              }
 ;

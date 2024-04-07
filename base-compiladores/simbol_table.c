@@ -76,4 +76,16 @@ registro_ts *busca(stack_gen *ts, char *ident){
 }
 
 
+unsigned int ts_conta_vs(stack_gen *ts){
+    unsigned int cont = 0;
+    stack_gen *t = ts;
+
+    while (t != NULL){
+        if ( ((registro_ts*)t->data)->categoria == vs)
+            cont++;
+        t = t->next;
+    }
+    
+    return  cont;
+}
 

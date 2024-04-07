@@ -40,7 +40,7 @@ typedef struct registro_tabela_simbolos{
 
 void add_tipo_vs(stack_gen *ts, char *token);
 
-int ts_conta_vs(stack_gen *ts);
+unsigned int ts_conta_vs(stack_gen *ts);
 
 registro_ts *cria_registro_vs(char* ident,enum Var_type tipo, int nivel_lexico, int deslocamento);
 

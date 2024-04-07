@@ -55,6 +55,20 @@ void gera_codigo_int (char* rot, char* comando, int a){
   fflush(fp);
 }
 
+void gera_codigo_unsig_int(char* rot, char* comando, unsigned int i){
+  check_fp();
+
+  if ( rot == NULL ) {
+    fprintf(fp, "     %s %u\n", comando, i);
+  } else {
+    fprintf(fp, "%s: %s %u\n", rot, comando, i);
+  }
+  
+  fflush(fp);
+}
+
+
+
 void gera_codigo_int_int (char* rot, char* comando, int a, int b){
   check_fp();
 
