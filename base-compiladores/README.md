@@ -12,7 +12,7 @@
 - [X] Permite atribuição de valores para variaveis.
 - [X] Permite calculos basicos (+, -, *, /) em comandos de atribuição.
 - [X] Permite parenteses em calculos basicos em comandos de atribuição.
-- [ ] Permite estrutura de comando if-else.
+- [X] Permite estrutura de comando if-else.
 - [X] Permite estrutura de comando while.
 - [ ] Permite a criação de procedimentos.
 - [ ] Permite a criação de funções.

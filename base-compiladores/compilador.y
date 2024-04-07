@@ -94,7 +94,8 @@ comandos:   comandos comando
 ;
 
 comando:  atribuicao PONTO_E_VIRGULA  |
-         comando_repetitivo
+         comando_repetitivo|
+         comando_condicional
 ;
 
 comando_repetitivo:  WHILE {
@@ -112,11 +113,25 @@ comando_repetitivo:  WHILE {
                      }
 ;
 
+comando_condicional: IF {novos_rotulos();} condicao THEN {/*Verif condicao*/gera_codigo_str(NULL,"DSVF",rotulo_ini());}
+                        comando_condicional_if 
+                        {/*Sai do if*/gera_codigo_str(NULL,"DSVS",rotulo_fim());} 
+                        {/*Rot ELSE*/gera_codigo(rotulo_ini(),"NADA");} 
+                        comando_condicional_else 
+                        {/*Rot Sai if*/ gera_codigo(rotulo_fim(),"NADA");}
+;
+comando_condicional_if:  
+                     T_BEGIN comandos T_END |
+                     comando  
+
+comando_condicional_else:  ELSE T_BEGIN comandos T_END  |
+                           ELSE  comando |
+
+; 
 atribuicao: IDENT {l_side = busca(tabela_simbolos, token);} ATRIBUICAO expressao {
          gera_codigo_int_int(NULL,"ARMZ",l_side->data.vs.nivel_lexico,l_side->data.vs.deslocamento);
       } 
 ;
-
 
 expressao: expressao_simples |
            condicao

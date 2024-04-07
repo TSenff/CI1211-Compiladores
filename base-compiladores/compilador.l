@@ -161,9 +161,9 @@ if { simbolo = simb_if;
           return IF;
 }
 
-then { simbolo = simb_if;
+then { simbolo = simb_then;
           strncpy (token, yytext, TAM_TOKEN);
-          IMPRIME("if  ");
+          IMPRIME("then  ");
           return THEN;
 }
 
