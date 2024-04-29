@@ -6,6 +6,7 @@
 #include "generic_stack.h"
 
 
+int cria_rotulo();
 int novos_rotulos();
 int remove_rotulos();
 char *rotulo_ini();

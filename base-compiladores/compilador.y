@@ -117,19 +117,35 @@ comando_repetitivo:  WHILE {
                      }
 ;
 
-comando_condicional: IF {novos_rotulos();} condicao THEN {/*Verif condicao*/gera_codigo_str(NULL,"DSVF",rotulo_ini());}
-                        comando_condicional_if 
-                        {/*Sai do if*/gera_codigo_str(NULL,"DSVS",rotulo_fim());} 
-                        {/*Rot ELSE*/gera_codigo(rotulo_ini(),"NADA");} 
-                        comando_condicional_else 
-                        {/*Rot Sai if*/ gera_codigo(rotulo_fim(),"NADA");}
-;
-comando_condicional_if:  
+comando_condicional: IF condicao THEN {
+                           /*Verif condicao*/
+                           cria_rotulo();
+                           gera_codigo_str(NULL,"DSVF",rotulo_fim());
+                        }
+                        comando_bloco_singular 
+                        if_end;
+
+if_end : ELSE{
+            // Sai do if
+            cria_rotulo();
+            gera_codigo_str(NULL,"DSVS",rotulo_fim());
+            // Rotulo de entrada do else
+            gera_codigo(rotulo_ini(),"NADA");
+         } 
+         comando_bloco_singular {
+            // Rotulo de Saida
+            gera_codigo(rotulo_fim(),"NADA");
+         }
+         |
+         {
+            // Rotulo de Saida
+            gera_codigo(rotulo_fim(),"NADA");
+         } 
+
+
+comando_bloco_singular:  
                      T_BEGIN comandos T_END |
                      comando  
-
-comando_condicional_else:  ELSE T_BEGIN comandos T_END  |
-                           ELSE  comando |
 
 ; 
 atribuicao: IDENT {l_side = busca(tabela_simbolos, token);} ATRIBUICAO expressao {
