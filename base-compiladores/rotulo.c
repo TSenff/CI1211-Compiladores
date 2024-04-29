@@ -35,9 +35,12 @@ int novos_rotulos(){
     return 0;
 }
 
+int remove_rotulo(){
+    free(pop(&rotulos));
+}
 int remove_rotulos(){
-        free(pop(&rotulos));
-        free(pop(&rotulos));
+    free(pop(&rotulos));
+    free(pop(&rotulos));
 }
 
 char *rotulo_ini(){

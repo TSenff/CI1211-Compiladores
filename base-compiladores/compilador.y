@@ -123,7 +123,8 @@ comando_condicional: IF condicao THEN {
                            gera_codigo_str(NULL,"DSVF",rotulo_fim());
                         }
                         comando_bloco_singular 
-                        if_end;
+                        if_end
+                        {remove_rotulo();}
 
 if_end : ELSE{
             // Sai do if
@@ -135,6 +136,7 @@ if_end : ELSE{
          comando_bloco_singular {
             // Rotulo de Saida
             gera_codigo(rotulo_fim(),"NADA");
+            remove_rotulo();
          }
          |
          {
