@@ -12,5 +12,8 @@ leMepa.tab.c: leMepa.y leMepa.h
 
 $(OBJ) :
 
+run :
+	./executaMepa -i MEPA
+
 clean : 
 	rm -f leMepa.tab.? lex.yy.c *.output *.o executaMepa
