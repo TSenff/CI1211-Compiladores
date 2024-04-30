@@ -15,6 +15,7 @@
 extern int num_vars;
 registro_ts *l_side, *temp;
 unsigned int var_cont;
+int *n;
 
 %}
 
@@ -32,22 +33,86 @@ programa    :{
              }
              PROGRAM IDENT
              ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA
-             bloco {
-               // Da onde tirar o valor de DMEM???
-               var_cont = ts_conta_vs(tabela_simbolos);
-               if(var_cont != 0)
-                  gera_codigo_unsig_int (NULL, "DMEM", var_cont);
-               gera_codigo (NULL, "PARA");
-             }
+             bloco 
+            {gera_codigo (NULL, "PARA");}
 ;
 
 bloco       :
               parte_declara_vars
-              {
-              }
-
+              parte_declara_procedimento
               comando_composto 
+               {
+
+
+                     n = pop(&pilha_var_cont);
+                     ts_deleta_simbolos_dmem(&tabela_simbolos, *n);
+                     gera_codigo_unsig_int (NULL, "DMEM", *n);
+                     free(n);
+               }
 ;
+
+parte_declara_procedimento: subrotinas parte_declara_procedimento
+                           |
+;
+
+subrotinas : declara_procedimento |
+             declara_funcao
+
+
+declara_procedimento :  PROCEDURE {
+                                    novos_rotulos();
+                                    // Aumenta o nivel lexico
+                                    nivel_lexico++;
+   
+                                    // Desvia pro final
+                                    gera_codigo_str(NULL,"DSVS",rotulo_fim());
+
+                                    //Rotulo inicial do procedimento
+                                    gera_codigo_int(rotulo_ini(),"ENPR",nivel_lexico);
+
+                                 } 
+                        IDENT 
+                           {
+                              push(&tabela_simbolos,cria_registro_proc(token,nivel_lexico,rotulo_ini()));
+                           }
+                        ABRE_PARENTESES {num_pf = 0;} declara_parametros_formais {
+                              // Salva o numero de parametros em uma pilha
+                              n = malloc(sizeof(int));
+                              if(n == NULL)
+                                 exit(-1);
+                              *n = num_pf;
+                              push(&pilha_procedimento,n);
+
+                              // Adiciona 
+                              add_pf_registro(tabela_simbolos, num_pf);
+                           } 
+                           FECHA_PARENTESES PONTO_E_VIRGULA
+                           bloco 
+                           {
+                              // Reduz nivel lexico
+                              nivel_lexico--;
+                              // Pega o numero de parametros do procedimento
+                              n = (int*)pop(&pilha_procedimento);
+                              gera_codigo_int_int(NULL,"RTPR",nivel_lexico,*n);
+                              free(n);
+
+                              // Rotulo de saida
+                              gera_codigo(rotulo_fim(),"NADA");
+                              // Remove o rotulo sem desalocar o nome do rotulo_ini()
+                              remove_rotulos_procedimento();
+                        }
+;
+
+declara_funcao : FUNCTION
+;
+
+declara_parametros_formais : declara_parametro_formal declara_parametros_formais
+                        |
+;
+ 
+declara_parametro_formal : ABRE_PARENTESES ABRE_PARENTESES
+;
+
 
 parte_declara_vars: VAR declara_vars { deslocamento = 0;}
                   |
@@ -63,6 +128,14 @@ declara_var : { }
               tipo
               { 
                gera_codigo_int (NULL, "AMEM", num_vars);
+               // Salva o valor para DMEM
+               n = malloc(sizeof(int));
+               if(n == NULL)
+                  exit(-1);
+               *n = num_vars;
+               push(&pilha_var_cont,n);
+
+               // Reseta valor
                num_vars = 0;
               }
               PONTO_E_VIRGULA
@@ -97,9 +170,10 @@ comandos:   comandos comando
             |
 ;
 
-comando:  atribuicao PONTO_E_VIRGULA  |
+comando:  ident_op PONTO_E_VIRGULA  |
          comando_repetitivo|
-         comando_condicional
+         comando_condicional|
+         chama_procedimento PONTO_E_VIRGULA
 ;
 
 comando_repetitivo:  WHILE {
@@ -150,9 +224,21 @@ comando_bloco_singular:
                      comando  
 
 ; 
-atribuicao: IDENT {l_side = busca(tabela_simbolos, token);} ATRIBUICAO expressao {
+
+ident_op: IDENT {l_side = busca(tabela_simbolos, token);} ident_op_rec
+;
+
+ident_op_rec : atribuicao | chama_procedimento
+
+atribuicao:  ATRIBUICAO expressao {   
          gera_codigo_int_int(NULL,"ARMZ",l_side->data.vs.nivel_lexico,l_side->data.vs.deslocamento);
       } 
+;
+
+chama_procedimento:   {
+                              gera_codigo_str_int(NULL,"CHPR",l_side->data.proc.rotulo,nivel_lexico);
+                           }
+
 ;
 
 expressao: expressao_simples |

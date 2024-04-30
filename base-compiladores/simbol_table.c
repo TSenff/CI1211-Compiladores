@@ -54,6 +54,53 @@ void add_tipo_vs(stack_gen *ts, char *token){
     }
 }
 
+registro_ts *cria_registro_proc(char* ident, int nivel_lexico, char *rotulo){
+    registro_ts *reg = malloc(sizeof(registro_ts));
+    if (reg == NULL)
+        exit(-1);
+    reg->categoria = pr;
+    strcpy(reg->identificador, ident);
+    reg->data.proc.nivel_lexico = nivel_lexico;
+    reg->data.proc.rotulo       = rotulo;
+    //Não inicializados ainda
+    reg->data.proc.num_param = -1;
+    reg->data.proc.info      = NULL;
+    return reg;
+}
+
+
+int add_pf_registro(stack_gen *ts, int num_pf){
+    registro_ts *reg;    
+    stack_gen *t = ts;
+    int flag = 1, pf_cont = num_pf;
+    struct info_param *info = malloc(sizeof(struct info_param)*num_pf);
+    if (info == NULL)
+        exit(-1);
+
+    while(t != NULL && flag){
+        reg = (registro_ts*)t->data;
+        switch (reg->categoria){
+            case pf:
+                info[num_pf-1].referencia = reg->data.param_f.info.referencia;
+                info[num_pf-1].tipo       = reg->data.param_f.info.tipo;
+                break;
+            case pr:
+                reg->data.proc.info = info;
+                reg->data.proc.num_param = pf_cont;
+                flag = 0;
+                break;
+            default:
+                exit(-1);
+                break;
+        }
+
+        // Pega o proximo registro
+        num_pf--;
+        t = t->next;
+    }
+    
+}
+
 void print_ts(stack_gen *ts){
     stack_gen *t = ts;
 
@@ -63,6 +110,38 @@ void print_ts(stack_gen *ts){
         t = t->next;
     }
     
+}
+
+void ts_deleta_simbolos_dmem(stack_gen **ts, int del){
+    // Se não ha variaveis para deletar retorna
+    if (!del)
+        return;
+
+    stack_gen **t = ts;
+    stack_gen *s = *t;
+    stack_gen *q = NULL;
+
+    // Se o primeiro simbolo da pilha for um procedimento, ignora os proximos n procedimentos
+    if (s != NULL && ((registro_ts*)peek(s))->categoria == pr){
+        q = s;
+        s = s->next;
+    }
+    // Se q é nulo então, pop em ts é suficiente
+    if (q == NULL){
+        while (*ts != NULL && ((registro_ts*)peek(*ts))->categoria == vs){
+            pop(ts);
+        }
+        return;
+    }
+    
+    // Se ignoramos N procedimentos encontraremos um grupo de VS, remove todas
+    while (s != NULL && ((registro_ts*)peek(s))->categoria == vs){
+        //leak de memoria
+        pop(&s);
+    }
+    // Como ts não foi modificado precisamos apenas ligar q com o novo valor de s
+    q->next = s;
+
 }
 
 

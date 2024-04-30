@@ -17,13 +17,13 @@ typedef enum simbolos {
 } simbolos;
 
 
-extern stack_gen *tabela_simbolos;
+extern stack_gen *tabela_simbolos,*pilha_procedimento,*pilha_var_cont;
 extern stack_gen *rotulos;
 extern simbolos simbolo, relacao;
 extern char token[TAM_TOKEN];
 extern int nivel_lexico;
 extern int deslocamento;
-extern int num_vars;
+extern int num_vars, num_pf;
 extern int nl;
 
 
@@ -32,6 +32,7 @@ void gera_codigo_str(char* rot, char* comando,char* str);
 void gera_codigo_int (char* rot, char* comando, int a);
 void gera_codigo_unsig_int(char* rot, char* comando, unsigned int i);
 void gera_codigo_int_int (char* rot, char* comando, int a, int b);
+void gera_codigo_str_int (char* rot, char* comando, char* str, int i);
 int imprimeErro ( char* erro );
 int yylex();
 

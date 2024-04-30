@@ -3,12 +3,12 @@
 #include <string.h>
 #include "compilador.h"
 
-stack_gen *tabela_simbolos;
+stack_gen *tabela_simbolos = NULL, *pilha_procedimento = NULL, *pilha_var_cont = NULL;
 simbolos simbolo, relacao;
 char token[TAM_TOKEN];
 int nivel_lexico;
 int deslocamento;
-int num_vars = 0;
+int num_vars = 0, num_pf = 0;
 //int nl;
 
 FILE* fp=NULL;
@@ -42,6 +42,20 @@ void gera_codigo_str (char* rot, char* comando, char* str){
   
   fflush(fp);
 }
+
+void gera_codigo_str_int (char* rot, char* comando, char* str, int i){
+  check_fp();
+
+  if ( rot == NULL ) {
+    fprintf(fp, "     %s %s %i\n", comando, str,i);
+  } else {
+    fprintf(fp, "%s: %s %s %i\n", rot, comando, str,i);
+  }
+  
+  fflush(fp);
+}
+
+
 
 void gera_codigo_int (char* rot, char* comando, int a){
   check_fp();

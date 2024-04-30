@@ -10,6 +10,8 @@ int cria_rotulo();
 int novos_rotulos();
 int remove_rotulo();
 int remove_rotulos();
+int remove_rotulos_procedimento();
+
 char *rotulo_ini();
 char *rotulo_fim();
 

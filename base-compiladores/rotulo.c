@@ -38,6 +38,12 @@ int novos_rotulos(){
 int remove_rotulo(){
     free(pop(&rotulos));
 }
+
+int remove_rotulos_procedimento(){
+    free(pop(&rotulos));
+    pop(&rotulos);
+}
+
 int remove_rotulos(){
     free(pop(&rotulos));
     free(pop(&rotulos));
