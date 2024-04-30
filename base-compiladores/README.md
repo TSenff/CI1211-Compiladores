@@ -14,10 +14,11 @@
 - [X] Permite parenteses em calculos basicos em comandos de atribuição.
 - [X] Permite estrutura de comando if-else.
 - [X] Permite estrutura de comando while.
-- [ ] Permite a criação de procedimentos.
+- [X] Permite a criação de procedimentos sem parametros.
+- [ ] Permite a criação de procedimentos com parametros por valor.
+- [ ] Permite a criação de procedimentos com parametros por referencia.
 - [ ] Permite a criação de funções.
 - [ ] Permite o uso do comando read().
 - [ ] Permite o uso do comando write().
-
 
 
