@@ -50,11 +50,15 @@ typedef struct registro_tabela_simbolos{
 
 registro_ts *cria_registro_vs(char* ident,enum Var_type tipo, int nivel_lexico, int deslocamento);
 registro_ts *cria_registro_proc(char* ident, int nivel_lexico, char *rotulo);
+registro_ts *cria_registro_pf(char* ident,enum Var_type tipo, int nivel_lexico, int deslocamento, int referencia);
 
 void add_tipo_vs(stack_gen *ts, char *token);
-int add_pf_registro(stack_gen *ts, int num_pf);
+void add_tipo_pf(stack_gen *ts, char *token);
+void add_desloc_pf(stack_gen *ts);
+int  add_pf_proc(stack_gen *ts, int num_pf);
 
 void ts_deleta_simbolos_dmem(stack_gen **ts, int del);
+void ts_deleta_pfs(stack_gen **ts);
 
 registro_ts *busca(stack_gen *ts, char *ident);
 

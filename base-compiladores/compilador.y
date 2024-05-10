@@ -72,52 +72,81 @@ declara_procedimento :  PROCEDURE {
 
                                  } 
                         IDENT 
-                           {
-                              push(&tabela_simbolos,cria_registro_proc(token,nivel_lexico,rotulo_ini()));
-                           }
-                        ABRE_PARENTESES {num_pf = 0;} declara_parametros_formais {
-                              // Salva o numero de parametros em uma pilha
-                              n = malloc(sizeof(int));
-                              if(n == NULL)
-                                 exit(-1);
-                              *n = num_pf;
-                              push(&pilha_procedimento,n);
-
-                              // Adiciona 
-                              add_pf_registro(tabela_simbolos, num_pf);
-                           } 
-                           FECHA_PARENTESES PONTO_E_VIRGULA
-                           bloco 
-                           {
-                              // Reduz nivel lexico
-                              nivel_lexico--;
-                              // Pega o numero de parametros do procedimento
-                              n = (int*)pop(&pilha_procedimento);
-                              gera_codigo_int_int(NULL,"RTPR",nivel_lexico,*n);
-                              free(n);
-
-                              // Rotulo de saida
-                              gera_codigo(rotulo_fim(),"NADA");
-                              // Remove o rotulo sem desalocar o nome do rotulo_ini()
-                              remove_rotulos_procedimento();
+                        {
+                           push(&tabela_simbolos,cria_registro_proc(token,nivel_lexico,rotulo_ini()));
                         }
+                        ABRE_PARENTESES {num_pf = 0;} declara_parametros_formais {add_desloc_pf(tabela_simbolos);}
+                        FECHA_PARENTESES PONTO_E_VIRGULA 
+                        {
+                           // Salva o numero de parametros em uma pilha para retorno
+                           n = malloc(sizeof(int));
+                           if(n == NULL)
+                              exit(-1);
+                           
+                           *n = num_pf;
+                           push(&pilha_procedimento,n);
+
+                           // Adiciona
+                           add_pf_proc(tabela_simbolos, num_pf);
+                        }
+                        bloco
+                        {
+                           // Reduz nivel lexico
+                           nivel_lexico--;
+
+                           // Pega o numero de parametros do procedimento
+                           n = (int*)pop(&pilha_procedimento);
+                           
+                           // Comando de retorno
+                           gera_codigo_int_int(NULL,"RTPR",nivel_lexico,*n);
+                           
+                           // Remove os parametros formais da tabela de simbolos se existem
+                           if(*n) 
+                              ts_deleta_pfs(&tabela_simbolos);
+
+                           // Desaloca o numero de parametros do procedimento
+                           free(n);
+                           
+                           // Rotulo de saida
+                           gera_codigo(rotulo_fim(),"NADA");
+
+                           // Remove o rotulo sem desalocar o nome do rotulo_ini()
+                           remove_rotulos_procedimento();
+                        }  
 ;
 
 declara_funcao : FUNCTION
 ;
 
-declara_parametros_formais : declara_parametro_formal declara_parametros_formais
-                        |
+declara_parametros_formais : declara_parametros_formais declara_parametro_formal
+                           | declara_parametro_formal
 ;
- 
-declara_parametro_formal : ABRE_PARENTESES ABRE_PARENTESES
+
+declara_parametro_formal : VAR {flag_pf_reference = 1;} parametro_formal
+                           | {flag_pf_reference = 0;} parametro_formal PONTO_E_VIRGULA
+;
+
+parametro_formal : lista_id_pf DOIS_PONTOS tipo_pf 
+;
+
+lista_id_pf: lista_id_pf VIRGULA id_pf 
+            |id_pf
+;
+
+id_pf: IDENT   {
+                  /* insere vars na tabela de simbolos */
+                  push(&tabela_simbolos,cria_registro_pf(token,desconhecido,nivel_lexico,0,flag_pf_reference));  
+                  num_pf++;
+               }
+;
+
+tipo_pf: IDENT {add_tipo_pf(tabela_simbolos, token);}
 ;
 
 
 parte_declara_vars: VAR declara_vars { deslocamento = 0;}
                   |
 ;
-
 
 declara_vars: declara_vars declara_var
             | declara_var
@@ -172,8 +201,7 @@ comandos:   comandos comando
 
 comando:  ident_op PONTO_E_VIRGULA  |
          comando_repetitivo|
-         comando_condicional|
-         chama_procedimento PONTO_E_VIRGULA
+         comando_condicional
 ;
 
 comando_repetitivo:  WHILE {
@@ -235,11 +263,16 @@ atribuicao:  ATRIBUICAO expressao {
       } 
 ;
 
-chama_procedimento:   {
-                              gera_codigo_str_int(NULL,"CHPR",l_side->data.proc.rotulo,nivel_lexico);
-                           }
-
+chama_procedimento: ABRE_PARENTESES lista_parametros_reais FECHA_PARENTESES {
+                        gera_codigo_str_int(NULL,"CHPR",l_side->data.proc.rotulo,nivel_lexico);
+                     }
 ;
+
+lista_parametros_reais: lista_parametros_reais VIRGULA parametro_real
+                        | parametro_real
+;
+
+parametro_real: expressao_simples 
 
 expressao: expressao_simples |
            condicao

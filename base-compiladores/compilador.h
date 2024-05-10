@@ -24,6 +24,7 @@ extern char token[TAM_TOKEN];
 extern int nivel_lexico;
 extern int deslocamento;
 extern int num_vars, num_pf;
+extern int flag_pf_reference;
 extern int nl;
 
 

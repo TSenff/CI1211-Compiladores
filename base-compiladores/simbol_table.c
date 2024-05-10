@@ -13,6 +13,36 @@ registro_ts *cria_registro_vs(char* ident,enum Var_type tipo, int nivel_lexico, 
 
 }
 
+
+registro_ts *cria_registro_proc(char* ident, int nivel_lexico, char *rotulo){
+    registro_ts *reg = malloc(sizeof(registro_ts));
+    if (reg == NULL)
+        exit(-1);
+    reg->categoria = pr;
+    strcpy(reg->identificador, ident);
+    reg->data.proc.nivel_lexico = nivel_lexico;
+    reg->data.proc.rotulo       = rotulo;
+    //Não inicializados ainda
+    reg->data.proc.num_param = -1;
+    reg->data.proc.info      = NULL;
+    return reg;
+}
+
+registro_ts *cria_registro_pf(char* ident,enum Var_type tipo, int nivel_lexico, int deslocamento, int referencia){
+    registro_ts *reg = malloc(sizeof(registro_ts));
+    if (reg == NULL)
+        exit(-1);
+
+    reg->categoria = pf;
+    strcpy(reg->identificador, ident);
+    reg->data.param_f.deslocamento    = deslocamento;
+    reg->data.param_f.nivel_lexico    = nivel_lexico;
+    reg->data.param_f.info.tipo       = desconhecido;
+    reg->data.param_f.info.referencia = referencia;
+    
+    return reg;
+}
+
 /**
  * Converte um token em um enum Var_type equivalente, caso desconhecido devolve desconhecido
 */
@@ -54,22 +84,51 @@ void add_tipo_vs(stack_gen *ts, char *token){
     }
 }
 
-registro_ts *cria_registro_proc(char* ident, int nivel_lexico, char *rotulo){
-    registro_ts *reg = malloc(sizeof(registro_ts));
-    if (reg == NULL)
-        exit(-1);
-    reg->categoria = pr;
-    strcpy(reg->identificador, ident);
-    reg->data.proc.nivel_lexico = nivel_lexico;
-    reg->data.proc.rotulo       = rotulo;
-    //Não inicializados ainda
-    reg->data.proc.num_param = -1;
-    reg->data.proc.info      = NULL;
-    return reg;
+void add_tipo_pf(stack_gen *ts, char *token){
+    registro_ts *reg;
+    enum Var_type vt = convert_token_var_type(token);
+    
+    stack_gen *t = ts;
+
+    while(t != NULL){
+        reg = (registro_ts*)t->data;
+
+        // Se o registro não for um parametro formal para
+        if (reg->categoria != pf)
+            break;   
+
+        // Se a o parametro formal já tiver um tipo para 
+        if (reg->data.param_f.info.tipo != desconhecido)
+            break;        
+        
+        // Adiciona tipo no parametro
+        reg->data.param_f.info.tipo = vt;
+
+        // Pega o proximo registro
+        t = t->next;
+    }
 }
 
+void add_desloc_pf(stack_gen *ts){
+    registro_ts *reg;
+    stack_gen *t = ts;
+    int desl = -4;
 
-int add_pf_registro(stack_gen *ts, int num_pf){
+    while(t != NULL){
+        reg = (registro_ts*)t->data;
+        // Se o registro não for um parametro formal com deslocamento zerado
+        if (reg->categoria != pf && reg->data.param_f.deslocamento == 0)
+            break;        
+        
+        reg->data.param_f.deslocamento = desl;
+        desl--;
+
+        // Pega o proximo registro
+        t = t->next;
+    }
+}
+
+int add_pf_proc(stack_gen *ts, int num_pf){
     registro_ts *reg;    
     stack_gen *t = ts;
     int flag = 1, pf_cont = num_pf;
@@ -122,7 +181,7 @@ void ts_deleta_simbolos_dmem(stack_gen **ts, int del){
     stack_gen *q = NULL;
 
     // Se o primeiro simbolo da pilha for um procedimento, ignora os proximos n procedimentos
-    if (s != NULL && ((registro_ts*)peek(s))->categoria == pr){
+    while (s != NULL && ((registro_ts*)peek(s))->categoria == pr){
         q = s;
         s = s->next;
     }
@@ -144,16 +203,48 @@ void ts_deleta_simbolos_dmem(stack_gen **ts, int del){
 
 }
 
+void ts_deleta_pfs(stack_gen **ts){
+
+    stack_gen **t = ts;
+    stack_gen *s = *t;
+    stack_gen *q = NULL;
+
+    // Se o primeiro simbolo da pilha for um procedimento, ignora os proximos n procedimentos
+    while (s != NULL && ((registro_ts*)peek(s))->categoria == pr){
+        q = s;
+        s = s->next;
+    }
+
+    // Se q é nulo então, pop em ts é suficiente
+    if (q == NULL){
+        while (*ts != NULL && ((registro_ts*)peek(*ts))->categoria == pf){
+            pop(ts);
+        }
+        return;
+    }
+    
+    // Se ignoramos N procedimentos encontraremos um grupo de PF, remove todas
+    while (s != NULL && ((registro_ts*)peek(s))->categoria == pf){
+        //leak de memoria
+        pop(&s);
+    }
+    // Como ts não foi modificado precisamos apenas ligar q com o novo valor de s
+    q->next = s;
+
+}
 
 registro_ts *busca(stack_gen *ts, char *ident){
     stack_gen *t = ts;
-
-    while (t != NULL && strcmp(ident, ((registro_ts*)t->data)->identificador ))
+    while (t != NULL && strcmp(ident, ((registro_ts*)t->data)->identificador )){
         t = t->next;
-    
-    return  (registro_ts*)t->data;
-}
+    }
 
+    if (t == NULL)
+        return NULL;
+
+
+    return  (registro_ts*)peek(t);
+}
 
 unsigned int ts_conta_vs(stack_gen *ts){
     unsigned int cont = 0;
