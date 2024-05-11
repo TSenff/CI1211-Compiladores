@@ -25,6 +25,7 @@ int *n;
 %token LABEL TYPE ARRAY OF PROCEDURE FUNCTION GOTO
 %token IF THEN ELSE WHILE DO AND OR NOT DIV MAIS MENOS ASTERISCO
 %token NUMERO IGUAL DIFERENTE MENOR  MENOR_IGUAL  MAIOR_IGUAL  MAIOR 
+%token WRITE
 
 %%
 
@@ -209,7 +210,8 @@ comandos:   comandos comando
 
 comando:  ident_op PONTO_E_VIRGULA  |
          comando_repetitivo|
-         comando_condicional
+         comando_condicional|
+         proc_write
 ;
 
 comando_repetitivo:  WHILE {
@@ -235,6 +237,7 @@ comando_condicional: IF ABRE_PARENTESES condicao FECHA_PARENTESES THEN {
                         comando_bloco_singular 
                         if_end
                         {remove_rotulo();}
+;
 
 if_end : ELSE{
             // Sai do if
@@ -253,7 +256,7 @@ if_end : ELSE{
             // Rotulo de Saida
             gera_codigo(rotulo_fim(),"NADA");
          } 
-
+;
 
 comando_bloco_singular:  
                      T_BEGIN comandos T_END |
@@ -261,10 +264,21 @@ comando_bloco_singular:
 
 ; 
 
+proc_write: WRITE ABRE_PARENTESES lista_ids_write FECHA_PARENTESES PONTO_E_VIRGULA
+;
+
+lista_ids_write:   lista_ids_write VIRGULA lista_id_write |
+                   lista_id_write
+;
+
+lista_id_write: expressao_simples {gera_codigo(NULL,"IMPR");}
+;
+
 ident_op: IDENT {l_side = busca(tabela_simbolos, token);} ident_op_rec
 ;
 
 ident_op_rec : atribuicao | chama_procedimento
+;
 
 atribuicao:  ATRIBUICAO expressao {  
          switch(l_side->categoria){

@@ -19,8 +19,9 @@
 - [X] Permite a criação de procedimentos com parametros por referencia.
 - [ ] Permite a criação de funções.
 - [ ] Permite o uso do comando read().
-- [ ] Permite o uso do comando write().
+- [X] Permite o uso do comando write().
 
 Duvidas:
- - O que a busca deve fazer quando encontrar mais de um identificador de outra forma?
- - Quando um procedimento espera receber um parametro como referencia ele transforma todas as variaveis usadas na expresão em referencias.
+
+- O que a busca deve fazer quando encontrar mais de um identificador de outra forma?
+- Quando um procedimento espera receber um parametro como referencia ele transforma todas as variaveis usadas na expresão em referencias.

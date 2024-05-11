@@ -275,6 +275,11 @@ not { simbolo = simb_not;
           return IGUAL;
 }
 
+write { simbolo = simb_write;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME("write  ");
+          return WRITE;
+}
 
 
 {ident} { simbolo = simb_identificador;
