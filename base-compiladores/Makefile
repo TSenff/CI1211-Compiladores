@@ -31,10 +31,10 @@ rotulo.o : rotulo.c rotulo.h generic_stack.h
 	gcc -c rotulo.c -o rotulo.o
 
 clean :
-	rm -f *.o
+	rm -f *.o  compilador.tab.* lex.yy.c compilador.output
 
 purge : clean 
-	rm -f compilador.tab.* lex.yy.c compilador.output compilador
+	rm -f compilador
 
 run : clean
 	./compilador teste1.pas
