@@ -360,7 +360,7 @@ fator      : NUMERO {gera_codigo_int(NULL,"CRCT",atoi(token)); } |
                      if(temp->data.param_f.info.referencia){
                         // Se está sendo passado como parametro real por referencia
                         if(flag_pr_reference){
-                           gera_codigo_int_int(NULL,"CRVL",temp->data.vs.nivel_lexico,temp->data.vs.deslocamento);
+                           gera_codigo_int_int(NULL,"CRVL",temp->data.param_f.nivel_lexico,temp->data.param_f.deslocamento);
                         }
                         else{
                            gera_codigo_int_int(NULL,"CRVI",temp->data.param_f.nivel_lexico,temp->data.param_f.deslocamento);
