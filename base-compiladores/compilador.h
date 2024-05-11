@@ -17,14 +17,12 @@ typedef enum simbolos {
 } simbolos;
 
 
-extern stack_gen *tabela_simbolos,*pilha_procedimento,*pilha_var_cont;
-extern stack_gen *rotulos;
+extern stack_gen *tabela_simbolos,*pilha_procedimento,*pilha_var_cont,*rotulos;
 extern simbolos simbolo, relacao;
 extern char token[TAM_TOKEN];
-extern int nivel_lexico;
-extern int deslocamento;
+extern int nivel_lexico, deslocamento;
 extern int num_vars, num_pf;
-extern int flag_pf_reference;
+extern int flag_pf_reference,flag_pr_reference;
 extern int nl;
 
 

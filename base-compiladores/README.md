@@ -15,10 +15,12 @@
 - [X] Permite estrutura de comando if-else.
 - [X] Permite estrutura de comando while.
 - [X] Permite a criação de procedimentos sem parametros.
-- [ ] Permite a criação de procedimentos com parametros por valor.
-- [ ] Permite a criação de procedimentos com parametros por referencia.
+- [X] Permite a criação de procedimentos com parametros por valor.
+- [X] Permite a criação de procedimentos com parametros por referencia.
 - [ ] Permite a criação de funções.
 - [ ] Permite o uso do comando read().
 - [ ] Permite o uso do comando write().
 
-
+Duvidas:
+ - O que a busca deve fazer quando encontrar mais de um identificador de outra forma?
+ - Quando um procedimento espera receber um parametro como referencia ele transforma todas as variaveis usadas na expresão em referencias.

@@ -43,10 +43,10 @@ bloco       :
               comando_composto 
                {
 
-
                      n = pop(&pilha_var_cont);
                      ts_deleta_simbolos_dmem(&tabela_simbolos, *n);
-                     gera_codigo_unsig_int (NULL, "DMEM", *n);
+                     if(*n)
+                        gera_codigo_unsig_int (NULL, "DMEM", *n);
                      free(n);
                }
 ;
@@ -66,7 +66,7 @@ declara_procedimento :  PROCEDURE {
    
                                     // Desvia pro final
                                     gera_codigo_str(NULL,"DSVS",rotulo_fim());
-
+                                    
                                     //Rotulo inicial do procedimento
                                     gera_codigo_int(rotulo_ini(),"ENPR",nivel_lexico);
 
@@ -75,9 +75,10 @@ declara_procedimento :  PROCEDURE {
                         {
                            push(&tabela_simbolos,cria_registro_proc(token,nivel_lexico,rotulo_ini()));
                         }
-                        ABRE_PARENTESES {num_pf = 0;} declara_parametros_formais {add_desloc_pf(tabela_simbolos);}
+                        ABRE_PARENTESES {num_pf = 0;} declara_parametros_formais { add_desloc_pf(tabela_simbolos);}
                         FECHA_PARENTESES PONTO_E_VIRGULA 
                         {
+                           
                            // Salva o numero de parametros em uma pilha para retorno
                            n = malloc(sizeof(int));
                            if(n == NULL)
@@ -118,12 +119,12 @@ declara_procedimento :  PROCEDURE {
 declara_funcao : FUNCTION
 ;
 
-declara_parametros_formais : declara_parametros_formais declara_parametro_formal
-                           | declara_parametro_formal
+declara_parametros_formais : declara_parametros_formais PONTO_E_VIRGULA declara_parametro_formal
+                           | declara_parametro_formal 
 ;
 
-declara_parametro_formal : VAR {flag_pf_reference = 1;} parametro_formal
-                           | {flag_pf_reference = 0;} parametro_formal PONTO_E_VIRGULA
+declara_parametro_formal : VAR {flag_pf_reference = 1;} parametro_formal 
+                           | {flag_pf_reference = 0;} parametro_formal 
 ;
 
 parametro_formal : lista_id_pf DOIS_PONTOS tipo_pf 
@@ -144,8 +145,15 @@ tipo_pf: IDENT {add_tipo_pf(tabela_simbolos, token);}
 ;
 
 
-parte_declara_vars: VAR declara_vars { deslocamento = 0;}
-                  |
+parte_declara_vars: VAR declara_vars { deslocamento = 0;} |
+            {  
+               // Salva o valor 
+               n = malloc(sizeof(int));
+               if(n == NULL)
+                  exit(-1);
+               *n = 0;
+               push(&pilha_var_cont,n);
+            }
 ;
 
 declara_vars: declara_vars declara_var
@@ -219,7 +227,7 @@ comando_repetitivo:  WHILE {
                      }
 ;
 
-comando_condicional: IF condicao THEN {
+comando_condicional: IF ABRE_PARENTESES condicao FECHA_PARENTESES THEN {
                            /*Verif condicao*/
                            cria_rotulo();
                            gera_codigo_str(NULL,"DSVF",rotulo_fim());
@@ -258,21 +266,43 @@ ident_op: IDENT {l_side = busca(tabela_simbolos, token);} ident_op_rec
 
 ident_op_rec : atribuicao | chama_procedimento
 
-atribuicao:  ATRIBUICAO expressao {   
-         gera_codigo_int_int(NULL,"ARMZ",l_side->data.vs.nivel_lexico,l_side->data.vs.deslocamento);
+atribuicao:  ATRIBUICAO expressao {  
+         switch(l_side->categoria){
+            case vs: 
+               gera_codigo_int_int(NULL,"ARMZ",l_side->data.vs.nivel_lexico,l_side->data.vs.deslocamento);
+               break;
+            case pf:
+               if(l_side->data.param_f.info.referencia){
+                  gera_codigo_int_int(NULL,"ARMI",l_side->data.param_f.nivel_lexico,l_side->data.param_f.deslocamento);
+               }
+               else{
+                  gera_codigo_int_int(NULL,"ARMZ",l_side->data.param_f.nivel_lexico,l_side->data.param_f.deslocamento);
+               }
+               break;
+            default:
+               exit(1);
+               break;
+         } 
       } 
 ;
 
-chama_procedimento: ABRE_PARENTESES lista_parametros_reais FECHA_PARENTESES {
+chama_procedimento: ABRE_PARENTESES {num_vars = 0;} lista_parametros_reais FECHA_PARENTESES {
+                        // Desativa flag
+                        flag_pr_reference = 0; 
                         gera_codigo_str_int(NULL,"CHPR",l_side->data.proc.rotulo,nivel_lexico);
                      }
 ;
 
 lista_parametros_reais: lista_parametros_reais VIRGULA parametro_real
                         | parametro_real
+                        |
 ;
 
-parametro_real: expressao_simples 
+parametro_real:   {
+                     flag_pr_reference = l_side->data.proc.info[num_vars].referencia;
+                     num_vars++;
+                  } 
+                  expressao_simples 
 
 expressao: expressao_simples |
            condicao
@@ -285,7 +315,7 @@ condicao: expressao_simples IGUAL expressao_simples        {gera_codigo(NULL,"CM
           expressao_simples MAIOR_IGUAL expressao_simples  {gera_codigo(NULL,"CMEG");}
 
 
-expressao_simples: expressao_simples MAIS termo { gera_codigo(NULL,"SOMA"); } |
+expressao_simples: expressao_simples MAIS termo  { gera_codigo(NULL,"SOMA"); } |
                    expressao_simples MENOS termo { gera_codigo(NULL,"SUBT"); } | 
                    termo 
 ;
@@ -305,13 +335,48 @@ prioridade  : ABRE_PARENTESES expressao_simples FECHA_PARENTESES ASTERISCO prior
 
 fator      : NUMERO {gera_codigo_int(NULL,"CRCT",atoi(token)); } |
              IDENT {
+
                // Asume que é uma variavel Simples
                temp = busca(tabela_simbolos, token);
-               if(temp->categoria != vs)
-                  imprimeErro("Tipo invalido em atribuição");
-               gera_codigo_int_int(NULL,"CRVL",temp->data.vs.nivel_lexico,temp->data.vs.deslocamento);
-            } 
 
+               switch(temp->categoria){
+
+                  case pf:
+                     // Verifica se guarda um endereço ou não
+                     if(temp->data.param_f.info.referencia){
+                        // Se está sendo passado como parametro real por referencia
+                        if(flag_pr_reference){
+                           gera_codigo_int_int(NULL,"CRVL",temp->data.vs.nivel_lexico,temp->data.vs.deslocamento);
+                        }
+                        else{
+                           gera_codigo_int_int(NULL,"CRVI",temp->data.param_f.nivel_lexico,temp->data.param_f.deslocamento);
+                        }                     
+                     }
+                     else{
+                        if(flag_pr_reference){
+                           gera_codigo_int_int(NULL,"CREN",temp->data.param_f.nivel_lexico,temp->data.param_f.deslocamento);
+                        }
+                        else{
+                           gera_codigo_int_int(NULL,"CRVL",temp->data.param_f.nivel_lexico,temp->data.param_f.deslocamento);
+                        }
+                     }
+                     break;
+                  case vs: 
+                     // Se está sendo passado como parametro real por referencia
+                     if(flag_pr_reference){
+                        gera_codigo_int_int(NULL,"CREN",temp->data.vs.nivel_lexico,temp->data.vs.deslocamento);
+                     }
+                     else{
+                        gera_codigo_int_int(NULL,"CRVL",temp->data.vs.nivel_lexico,temp->data.vs.deslocamento);
+                     }
+
+                     break;
+                  default:
+                     imprimeErro("Tipo invalido em expressao_simples");
+                     exit(1);
+                     break;
+               } 
+            } 
 ;
 
 %%

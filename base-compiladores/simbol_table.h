@@ -16,7 +16,6 @@ typedef struct info_param{
 }info_param;
 
 // Structs para armazenar informações dos tipos de simbolos
-
 typedef struct variavel_simples{
         enum Var_type tipo;
         int nivel_lexico;
@@ -35,7 +34,6 @@ typedef struct procedimentos{
         int num_param;
         struct info_param *info;
 }procedimentos;
-
 
 // Struct usado na pilha da tabela de simbolos, Type categoria marca qual forma a union deve levar
 typedef struct registro_tabela_simbolos{
@@ -63,7 +61,5 @@ void ts_deleta_pfs(stack_gen **ts);
 registro_ts *busca(stack_gen *ts, char *ident);
 
 void print_ts(stack_gen *ts);
-
-
 
 #endif

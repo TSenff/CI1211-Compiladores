@@ -9,7 +9,7 @@ char token[TAM_TOKEN];
 int nivel_lexico;
 int deslocamento;
 int num_vars = 0, num_pf = 0;
-int flag_pf_reference;
+int flag_pf_reference,flag_pr_reference = 0;
 //int nl;
 
 FILE* fp=NULL;
