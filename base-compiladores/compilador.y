@@ -25,7 +25,7 @@ int *n;
 %token LABEL TYPE ARRAY OF PROCEDURE FUNCTION GOTO
 %token IF THEN ELSE WHILE DO AND OR NOT DIV MAIS MENOS ASTERISCO
 %token NUMERO IGUAL DIFERENTE MENOR  MENOR_IGUAL  MAIOR_IGUAL  MAIOR 
-%token WRITE
+%token WRITE READ
 
 %%
 
@@ -211,7 +211,8 @@ comandos:   comandos comando
 comando:  ident_op PONTO_E_VIRGULA  |
          comando_repetitivo|
          comando_condicional|
-         proc_write
+         proc_write |
+         proc_read
 ;
 
 comando_repetitivo:  WHILE {
@@ -273,6 +274,28 @@ lista_ids_write:   lista_ids_write VIRGULA lista_id_write |
 
 lista_id_write: expressao_simples {gera_codigo(NULL,"IMPR");}
 ;
+
+proc_read: READ ABRE_PARENTESES lista_ids_read FECHA_PARENTESES PONTO_E_VIRGULA
+;
+
+lista_ids_read:   lista_ids_read VIRGULA lista_id_read |
+                  lista_id_read
+;
+
+lista_id_read: IDENT {
+   temp = busca(tabela_simbolos,token);
+   switch(temp->categoria){
+      case vs:
+         gera_codigo(NULL,"LEIT");
+         gera_codigo_int_int(NULL,"ARMZ",temp->data.vs.nivel_lexico,temp->data.vs.deslocamento);
+         break; 
+   default:
+      imprimeErro("IDENT invalido em read");
+      exit(-1);
+   }
+   }
+;
+
 
 ident_op: IDENT {l_side = busca(tabela_simbolos, token);} ident_op_rec
 ;

@@ -281,6 +281,11 @@ write { simbolo = simb_write;
           return WRITE;
 }
 
+read { simbolo = simb_read;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME("read  ");
+          return READ;
+}
 
 {ident} { simbolo = simb_identificador;
           strncpy (token, yytext, TAM_TOKEN);
