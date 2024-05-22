@@ -108,8 +108,7 @@ corpo_procedimento :
                      }
                      bloco
                      {
-                        // Reduz nivel lexico
-                        nivel_lexico--;
+
                         
                         // Pega o numero de parametros do procedimento
                         n = (int*)pop(&pilha_procedimento);
@@ -129,6 +128,9 @@ corpo_procedimento :
 
                         // Remove o rotulo sem desalocar o nome do rotulo_ini()
                         remove_rotulos_procedimento();
+                        
+                        // Reduz nivel lexico
+                        nivel_lexico--;
                      }  
 ;
 
@@ -445,6 +447,7 @@ fator      : NUMERO {gera_codigo_int(NULL,"CRCT",atoi(token)); } |
                      // Chamada de função/procedimento sobreescreve l_side,
                      // é necessario salvar o valor atual para caso de atribuição 
                      push(&pilha_chamada_funcao, l_side);
+                     l_side = temp;
                      break;
                   default:
                      imprimeErro("Tipo invalido em expressao_simples");
