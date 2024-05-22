@@ -43,82 +43,95 @@ bloco       :
               parte_declara_procedimento
               comando_composto 
                {
-
-                     n = pop(&pilha_var_cont);
-                     ts_deleta_simbolos_dmem(&tabela_simbolos, *n);
-                     if(*n)
-                        gera_codigo_unsig_int (NULL, "DMEM", *n);
-                     free(n);
+                  n = pop(&pilha_var_cont);
+                  ts_deleta_simbolos_dmem(&tabela_simbolos, *n);
+                  if(*n)
+                     gera_codigo_unsig_int (NULL, "DMEM", *n);
+                  free(n);
                }
 ;
 
-parte_declara_procedimento: subrotinas parte_declara_procedimento
+parte_declara_procedimento:   
+                              {
+                                 novos_rotulos();
+                                 // Aumenta o nivel lexico
+                                 nivel_lexico++;
+                                 // Desvia pro final
+                                 gera_codigo_str(NULL,"DSVS",rotulo_fim());
+                                 //Rotulo inicial do procedimento
+                                 gera_codigo_int(rotulo_ini(),"ENPR",nivel_lexico);
+                              } 
+                              subrotinas parte_declara_procedimento
                            |
 ;
 
-subrotinas : declara_procedimento |
-             declara_funcao
+subrotinas :   PROCEDURE IDENT                      
+               {
+                  push(&tabela_simbolos,cria_registro_proc(token,nivel_lexico,rotulo_ini(),desconhecido));
+               }
+               parametro_procedimento PONTO_E_VIRGULA
+               corpo_procedimento |
+               FUNCTION  IDENT 
+               { 
 
+                  push(&tabela_simbolos,cria_registro_proc(token,nivel_lexico,rotulo_ini(),desconhecido));
+               } 
+                parametro_procedimento  DOIS_PONTOS IDENT {add_ret_proc(tabela_simbolos,token);}
+               PONTO_E_VIRGULA
 
-declara_procedimento :  PROCEDURE {
-                                    novos_rotulos();
-                                    // Aumenta o nivel lexico
-                                    nivel_lexico++;
-   
-                                    // Desvia pro final
-                                    gera_codigo_str(NULL,"DSVS",rotulo_fim());
-                                    
-                                    //Rotulo inicial do procedimento
-                                    gera_codigo_int(rotulo_ini(),"ENPR",nivel_lexico);
-
-                                 } 
-                        IDENT 
-                        {
-                           push(&tabela_simbolos,cria_registro_proc(token,nivel_lexico,rotulo_ini()));
-                        }
-                        ABRE_PARENTESES {num_pf = 0;} declara_parametros_formais { add_desloc_pf(tabela_simbolos);}
-                        FECHA_PARENTESES PONTO_E_VIRGULA 
-                        {
-                           
-                           // Salva o numero de parametros em uma pilha para retorno
-                           n = malloc(sizeof(int));
-                           if(n == NULL)
-                              exit(-1);
-                           
-                           *n = num_pf;
-                           push(&pilha_procedimento,n);
-
-                           // Adiciona
-                           add_pf_proc(tabela_simbolos, num_pf);
-                        }
-                        bloco
-                        {
-                           // Reduz nivel lexico
-                           nivel_lexico--;
-
-                           // Pega o numero de parametros do procedimento
-                           n = (int*)pop(&pilha_procedimento);
-                           
-                           // Comando de retorno
-                           gera_codigo_int_int(NULL,"RTPR",nivel_lexico,*n);
-                           
-                           // Remove os parametros formais da tabela de simbolos se existem
-                           if(*n) 
-                              ts_deleta_pfs(&tabela_simbolos);
-
-                           // Desaloca o numero de parametros do procedimento
-                           free(n);
-                           
-                           // Rotulo de saida
-                           gera_codigo(rotulo_fim(),"NADA");
-
-                           // Remove o rotulo sem desalocar o nome do rotulo_ini()
-                           remove_rotulos_procedimento();
-                        }  
+                
+               corpo_procedimento
 ;
 
-declara_funcao : FUNCTION
+parametro_procedimento :   
+                           {num_pf = 0;} 
+                           ABRE_PARENTESES declara_parametros_formais FECHA_PARENTESES
+                           { 
+                              
+                              add_desloc_pf(tabela_simbolos);
+                           }
+                             
 ;
+
+corpo_procedimento : 
+
+                     {
+                        // Salva o numero de parametros em uma pilha para retorno
+                        n = malloc(sizeof(int));
+                        if(n == NULL)
+                           exit(-1);
+                        *n = num_pf;
+                        push(&pilha_procedimento,n);
+                        
+                        // Adiciona
+                        add_pf_proc(tabela_simbolos, num_pf);
+                     }
+                     bloco
+                     {
+                        // Reduz nivel lexico
+                        nivel_lexico--;
+                        
+                        // Pega o numero de parametros do procedimento
+                        n = (int*)pop(&pilha_procedimento);
+                        
+                        // Comando de retorno
+                        gera_codigo_int_int(NULL,"RTPR",nivel_lexico,*n);
+                        
+                        // Remove os parametros formais da tabela de simbolos se existem
+                        if(*n) 
+                           ts_deleta_pfs(&tabela_simbolos);
+                        
+                        // Desaloca o numero de parametros do procedimento
+                        free(n);
+                           
+                        // Rotulo de saida
+                        gera_codigo(rotulo_fim(),"NADA");
+
+                        // Remove o rotulo sem desalocar o nome do rotulo_ini()
+                        remove_rotulos_procedimento();
+                     }  
+;
+
 
 declara_parametros_formais : declara_parametros_formais PONTO_E_VIRGULA declara_parametro_formal
                            | declara_parametro_formal 
@@ -316,6 +329,11 @@ atribuicao:  ATRIBUICAO expressao {
                   gera_codigo_int_int(NULL,"ARMZ",l_side->data.param_f.nivel_lexico,l_side->data.param_f.deslocamento);
                }
                break;
+            case pr:
+               if(l_side->data.proc.retorno == desconhecido)
+                  imprimeErro("Procedimento usado em atribuição.");
+               gera_codigo_int_int(NULL,"ARMZ", l_side->data.proc.nivel_lexico, -4 -l_side->data.proc.num_param);
+               break;
             default:
                exit(1);
                break;
@@ -323,9 +341,18 @@ atribuicao:  ATRIBUICAO expressao {
       } 
 ;
 
-chama_procedimento: ABRE_PARENTESES {num_vars = 0;} lista_parametros_reais FECHA_PARENTESES {
+chama_procedimento:  ABRE_PARENTESES 
+                     {
+                        num_vars = 0;
+                        // Se for uma função cria espaço de retorno 
+                        if(l_side->data.proc.retorno != desconhecido)
+                           gera_codigo_int(NULL,"AMEM", 1);
+                     } 
+                     lista_parametros_reais FECHA_PARENTESES 
+                     {
                         // Desativa flag
                         flag_pr_reference = 0; 
+
                         gera_codigo_str_int(NULL,"CHPR",l_side->data.proc.rotulo,nivel_lexico);
                      }
 ;
@@ -338,8 +365,14 @@ lista_parametros_reais: lista_parametros_reais VIRGULA parametro_real
 parametro_real:   {
                      flag_pr_reference = l_side->data.proc.info[num_vars].referencia;
                      num_vars++;
+                     /* Caso uma função seja passada na expressão mantem a referencia do lado esquerdo da chamada atual*/
+                     push(&pilha_chamada_funcao,l_side);
                   } 
                   expressao_simples 
+                  {
+                     // Recupera
+                     l_side = (registro_ts*)pop(&pilha_chamada_funcao);
+                  }
 
 expressao: expressao_simples |
            condicao
@@ -373,11 +406,8 @@ prioridade  : ABRE_PARENTESES expressao_simples FECHA_PARENTESES ASTERISCO prior
 fator      : NUMERO {gera_codigo_int(NULL,"CRCT",atoi(token)); } |
              IDENT {
 
-               // Asume que é uma variavel Simples
                temp = busca(tabela_simbolos, token);
-
                switch(temp->categoria){
-
                   case pf:
                      // Verifica se guarda um endereço ou não
                      if(temp->data.param_f.info.referencia){
@@ -408,13 +438,36 @@ fator      : NUMERO {gera_codigo_int(NULL,"CRCT",atoi(token)); } |
                      }
 
                      break;
+                  case pr:
+                     // Flag de chamada de funcao em expressao ativada
+                     flag_expr_func = 1;
+
+                     // Chamada de função/procedimento sobreescreve l_side,
+                     // é necessario salvar o valor atual para caso de atribuição 
+                     push(&pilha_chamada_funcao, l_side);
+                     break;
                   default:
                      imprimeErro("Tipo invalido em expressao_simples");
                      exit(1);
                      break;
                } 
             } 
+            funcao_ou_variavel
+
 ;
+
+funcao_ou_variavel:  {
+                        // Se entrar nesse caso sem expressao ter chamado uma função existe um erro
+                        if(!flag_expr_func)
+                           imprimeErro("Expressão incorreta");
+                        flag_expr_func = 0;
+                     }
+                     chama_procedimento |
+                     {
+                        // Se entrar nesse caso e expressao chamou uma função existe um erro
+                        if(flag_expr_func)
+                           imprimeErro("Chamada de procedimento/função incorreta");
+                     }
 
 %%
 

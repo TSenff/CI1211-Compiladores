@@ -13,8 +13,7 @@ registro_ts *cria_registro_vs(char* ident,enum Var_type tipo, int nivel_lexico, 
 
 }
 
-
-registro_ts *cria_registro_proc(char* ident, int nivel_lexico, char *rotulo){
+registro_ts *cria_registro_proc(char* ident, int nivel_lexico, char *rotulo, enum Var_type retorno){
     registro_ts *reg = malloc(sizeof(registro_ts));
     if (reg == NULL)
         exit(-1);
@@ -22,6 +21,7 @@ registro_ts *cria_registro_proc(char* ident, int nivel_lexico, char *rotulo){
     strcpy(reg->identificador, ident);
     reg->data.proc.nivel_lexico = nivel_lexico;
     reg->data.proc.rotulo       = rotulo;
+    reg->data.proc.retorno      = retorno;
     //Não inicializados ainda
     reg->data.proc.num_param = -1;
     reg->data.proc.info      = NULL;
@@ -108,6 +108,33 @@ void add_tipo_pf(stack_gen *ts, char *token){
         t = t->next;
     }
 }
+
+void add_ret_proc(stack_gen *ts, char *token){
+    registro_ts *reg;
+    enum Var_type retorno = convert_token_var_type(token);
+    
+    stack_gen *t = ts;
+
+    while(t != NULL){
+        reg = (registro_ts*)t->data;
+
+        // Ao pegar o primeiro procedimento adiciona retorno e sai
+        if (reg->categoria == pr){
+            if (reg->data.proc.retorno != desconhecido){
+                imprimeErro("add_ret_proc() não encontrou um procedimento valido");
+                exit(1);            
+            }
+            reg->data.proc.retorno = retorno; 
+            return;   
+        }
+        // Pega o proximo registro
+        t = t->next;
+    }
+    
+    imprimeErro("add_ret_proc() encontrou null na tabela de simbolos");
+    exit(1);
+}
+
 
 void add_desloc_pf(stack_gen *ts){
     registro_ts *reg;

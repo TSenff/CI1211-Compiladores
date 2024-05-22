@@ -3,13 +3,13 @@
 #include <string.h>
 #include "compilador.h"
 
-stack_gen *tabela_simbolos = NULL, *pilha_procedimento = NULL, *pilha_var_cont = NULL;
+stack_gen *tabela_simbolos = NULL, *pilha_procedimento = NULL, *pilha_var_cont = NULL, *pilha_chamada_funcao = NULL;
 simbolos simbolo, relacao;
 char token[TAM_TOKEN];
 int nivel_lexico;
 int deslocamento;
 int num_vars = 0, num_pf = 0;
-int flag_pf_reference,flag_pr_reference = 0;
+int flag_pf_reference,flag_pr_reference = 0, flag_expr_func = 0;
 //int nl;
 
 FILE* fp=NULL;

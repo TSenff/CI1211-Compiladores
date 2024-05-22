@@ -32,6 +32,7 @@ typedef struct procedimentos{
         int nivel_lexico;
         char *rotulo;
         int num_param;
+        enum Var_type retorno;
         struct info_param *info;
 }procedimentos;
 
@@ -47,13 +48,14 @@ typedef struct registro_tabela_simbolos{
 }registro_ts;
 
 registro_ts *cria_registro_vs(char* ident,enum Var_type tipo, int nivel_lexico, int deslocamento);
-registro_ts *cria_registro_proc(char* ident, int nivel_lexico, char *rotulo);
+registro_ts *cria_registro_proc(char* ident, int nivel_lexico, char *rotulo, enum Var_type retorno);
 registro_ts *cria_registro_pf(char* ident,enum Var_type tipo, int nivel_lexico, int deslocamento, int referencia);
 
 void add_tipo_vs(stack_gen *ts, char *token);
 void add_tipo_pf(stack_gen *ts, char *token);
 void add_desloc_pf(stack_gen *ts);
 int  add_pf_proc(stack_gen *ts, int num_pf);
+void add_ret_proc(stack_gen *ts, char *token);
 
 void ts_deleta_simbolos_dmem(stack_gen **ts, int del);
 void ts_deleta_pfs(stack_gen **ts);
