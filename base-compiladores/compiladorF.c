@@ -48,9 +48,9 @@ void gera_codigo_str_int (char* rot, char* comando, char* str, int i){
   check_fp();
 
   if ( rot == NULL ) {
-    fprintf(fp, "     %s %s %i\n", comando, str,i);
+    fprintf(fp, "     %s %s, %i\n", comando, str,i);
   } else {
-    fprintf(fp, "%s: %s %s %i\n", rot, comando, str,i);
+    fprintf(fp, "%s: %s %s, %i\n", rot, comando, str,i);
   }
   
   fflush(fp);
@@ -88,9 +88,9 @@ void gera_codigo_int_int (char* rot, char* comando, int a, int b){
   check_fp();
 
   if ( rot == NULL ) {
-    fprintf(fp, "     %s %i %i\n", comando, a, b);
+    fprintf(fp, "     %s %i, %i\n", comando, a, b);
   } else {
-    fprintf(fp, "%s: %s %i %i\n", rot, comando, a, b);
+    fprintf(fp, "%s: %s %i, %i\n", rot, comando, a, b);
   }
   
   fflush(fp);
